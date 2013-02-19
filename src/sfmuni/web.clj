@@ -10,7 +10,7 @@
             [ring.middleware.basic-authentication :as basic]
             [cemerick.drawbridge :as drawbridge]
             [environ.core :refer [env]]
-            [clj-json.core :as json]
+            [clojure.data.json :as json]
   )
 )
 
@@ -26,7 +26,7 @@
 (defn json-response [data & [status]]
   {:status (or status 200)
    :headers {"Content-Type" "application/json"}
-   :body (json/generate-string data)})
+   :body (json/write-str data)})
 
 
 (defn get-stop-list []

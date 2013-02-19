@@ -12,7 +12,7 @@
                  [com.cemerick/drawbridge "0.0.6"]
                  [org.clojure/core.logic "0.8.0-rc2"]
                  [enlive "1.0.0"]
-                 [clj-json "0.5.3"]
+                 [org.clojure/data.json "0.2.1"]
                  ]
   :min-lein-version "2.0.0"
   :plugins [[environ/environ.lein "0.2.1"]]
