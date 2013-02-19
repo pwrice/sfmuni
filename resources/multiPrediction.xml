@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?> 
+<body copyright="All data copyright San Francisco Muni 2013.">
+<predictions agencyTitle="San Francisco Muni" routeTitle="30-Stockton" routeTag="30" stopTitle="3rd St &amp; Mission St" stopTag="3136">
+  <direction title="Outbound to the Marina District">
+  <prediction epochTime="1361250553707" seconds="871" minutes="14" isDeparture="false" affectedByLayover="true" dirTag="30_OB3" vehicle="5570" block="3003" tripTag="5230847" />
+  <prediction epochTime="1361251633707" seconds="1951" minutes="32" isDeparture="false" affectedByLayover="true" dirTag="30_OB3" vehicle="5495" block="3011" tripTag="5230848" />
+  <prediction epochTime="1361252198287" seconds="2516" minutes="41" isDeparture="false" affectedByLayover="true" dirTag="30_OB3" vehicle="5510" block="3011" tripTag="5230848" />
+  <prediction epochTime="1361253973707" seconds="4291" minutes="71" isDeparture="false" affectedByLayover="true" dirTag="30_OB3" vehicle="5481" block="3023" tripTag="5230850" />
+  <prediction epochTime="1361255173707" seconds="5491" minutes="91" isDeparture="false" affectedByLayover="true" dirTag="30_OB3" vehicle="5549" block="3009" tripTag="5230851" />
+  </direction>
+<message text="Saturday Service Today."/>
+</predictions>
+</body>
