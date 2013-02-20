@@ -1,4 +1,5 @@
 (ns sfmuni.web
+  (:use [clojure.contrib.str-utils :only [re-sub re-gsub]])
   (:require [compojure.core :refer [defroutes GET PUT POST DELETE ANY]]
             [compojure.handler :refer [site]]
             [compojure.route :as route]
@@ -8,9 +9,13 @@
             [ring.middleware.session.cookie :as cookie]
             [ring.adapter.jetty :as jetty]
             [ring.middleware.basic-authentication :as basic]
+            [ring.util.codec :as ring-codec] 
             [cemerick.drawbridge :as drawbridge]
             [environ.core :refer [env]]
             [clojure.data.json :as json]
+            [net.cgrand.enlive-html :as html]
+            [clj-http.client :as client]
+            [clojure.string :as string]
   )
 )
 
@@ -35,8 +40,7 @@
     ])
 )
 
-(defn get-stop-prediction [stop-name]
-  (json-response 
+(defn get-dummy-prediction-map []
      {:tag :predictions :attrs {:stoptag 3136 :stoptitle "3rd St & Mission St" :routetag "30" :routetitle "30-Stockton" :agencytitle "San Francisco Muni"} :content [
        {:tag :direction :attrs {:title "Outbound to the Marina District"} :content [
          {:tag :prediction :attrs {:triptag "5230847" :block "3003" :vehicle 5570 :dirtag "30_OB3" :affectedbylayover true :isdeparture false :minutes 14 :seconds 871 :epochtime 1361250553707} :content nil} 
@@ -45,10 +49,36 @@
          {:tag :prediction :attrs {:triptag "5230850" :block "3023" :vehicle 5481 :dirtag "30_OB3" :affectedbylayover true :isdeparture false :minutes 71 :seconds 4291 :epochtime 1361253973707} :content nil} 
          {:tag :prediction :attrs {:triptag "5230851" :block "3009" :vehicle 5549 :dirtag "30_OB3" :affectedbylayover true :isdeparture false :minutes 91 :seconds 5491 :epochtime 1361255173707} :content nil} 
       ]}]} 
-    )
+)
+
+(defn get-parsed-html [url]
+  ;(html/html-resource ((java.net.URL. url))
+  ;(-> url client/get :body (partial re-gsub #"\n" "") java.io.StringReader. html/html-resource)
+  ;(-> url client/get :body java.io.StringReader. html/html-resource)
+  (html/html-resource 
+    (java.io.StringReader. 
+      (re-gsub #"[ \f\r\t\v]*\n[ \f\r\t\v]*" ""  ; strip out whitespace/newlines between tags
+        (:body (client/get url)))))
 )
 
 
+(defn get-stops-for-stop-name [stop-name]
+  [{:routeTag "30" :tag "3941" :title "Chestnut St &amp; Fillmore St" :lat "37.8009099" :lon "-122.43618" :stopId "13941"}]
+)
+
+(defn get-url-params-for-stop-maps [stop-maps]
+  (string/join "&" (map #(str "stops=" (ring-codec/url-encode (str (:routeTag %) "|" (:tag %)))) stop-maps))
+)
+
+(defn get-stop-prediction [stop-name]
+  (json-response 
+    (let [prediction-url (str "http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni&"
+                                (get-url-params-for-stop-maps (get-stops-for-stop-name stop-name)))]
+      (-> (get-parsed-html prediction-url) first :content first :content)
+      ;(get-dummy-prediction-map)
+    )
+  )
+)
 
 (defroutes app
   (ANY "/repl" {:as req}

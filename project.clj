@@ -13,6 +13,7 @@
                  [org.clojure/core.logic "0.8.0-rc2"]
                  [enlive "1.0.0"]
                  [org.clojure/data.json "0.2.1"]
+                 [org.clojure/clojure-contrib "1.2.0"]
                  ]
   :min-lein-version "2.0.0"
   :plugins [[environ/environ.lein "0.2.1"]]
