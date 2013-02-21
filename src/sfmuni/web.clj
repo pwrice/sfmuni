@@ -1,5 +1,6 @@
 (ns sfmuni.web
   (:use [clojure.contrib.str-utils :only [re-sub re-gsub]])
+  (:use [ring.util.codec :only [url-encode url-decode]])
   (:require [compojure.core :refer [defroutes GET PUT POST DELETE ANY]]
             [compojure.handler :refer [site]]
             [compojure.route :as route]
@@ -9,7 +10,6 @@
             [ring.middleware.session.cookie :as cookie]
             [ring.adapter.jetty :as jetty]
             [ring.middleware.basic-authentication :as basic]
-            [ring.util.codec :as ring-codec] 
             [cemerick.drawbridge :as drawbridge]
             [environ.core :refer [env]]
             [clojure.data.json :as json]
@@ -51,6 +51,10 @@
       ]}]} 
 )
 
+(defn get-dummy-stops-for-stop-name [stop-name]
+  [{:routeTag "30" :tag "3941" :title "Chestnut St &amp; Fillmore St" :lat "37.8009099" :lon "-122.43618" :stopId "13941"}]
+)
+
 (defn get-parsed-html [url]
   ;(html/html-resource ((java.net.URL. url))
   ;(-> url client/get :body (partial re-gsub #"\n" "") java.io.StringReader. html/html-resource)
@@ -61,19 +65,31 @@
         (:body (client/get url)))))
 )
 
-
 (defn get-stops-for-stop-name [stop-name]
-  [{:routeTag "30" :tag "3941" :title "Chestnut St &amp; Fillmore St" :lat "37.8009099" :lon "-122.43618" :stopId "13941"}]
+  (let [dom (html/html-resource (io/reader (io/resource "allRoutes.xml")))]
+    (reduce (fn [existigStopList routeNode]
+      (concat existigStopList 
+        (map #(merge {:routeTag (:tag (:attrs routeNode))} %)
+          (filter 
+            #(= (:title (:attrs %)) stop-name)
+            (html/select routeNode [[:stop (html/attr? :title)]]))))
+      )
+      '()
+      (html/select dom [:route])
+    )
+  )
 )
 
 (defn get-url-params-for-stop-maps [stop-maps]
-  (string/join "&" (map #(str "stops=" (ring-codec/url-encode (str (:routeTag %) "|" (:tag %)))) stop-maps))
+  (string/join "&" (map #(str "stops=" (url-encode (str (:routeTag %) "|" (:tag (:attrs %))))) stop-maps))
 )
 
 (defn get-stop-prediction [stop-name]
   (json-response 
     (let [prediction-url (str "http://webservices.nextbus.com/service/publicXMLFeed?command=predictionsForMultiStops&a=sf-muni&"
                                 (get-url-params-for-stop-maps (get-stops-for-stop-name stop-name)))]
+      ;(println stop-name)
+      ;(println prediction-url)
       (-> (get-parsed-html prediction-url) first :content first :content)
       ;(get-dummy-prediction-map)
     )
@@ -88,7 +104,7 @@
         :headers {"Content-Type" "text/plain"}
         :body (pr-str ["Hello" :from 'Heroku])})
   (GET "/get-stops" [] (get-stop-list))
-  (GET "/get-predictions-for-stop" [stop-name] (get-stop-prediction stop-name))
+  (GET "/get-predictions-for-stop" [name] (get-stop-prediction (url-decode name)))
   (ANY "*" []
        (route/not-found (slurp (io/resource "404.html")))))
 
@@ -114,3 +130,6 @@
 ;; For interactive development:
 ;; (.stop server)
 ;; (def server (-main))
+
+; "3rd St & Mission St"
+; http://localhost:5000/get-predictions-for-stop?name=3rd%20St%20%26%20Mission%20St

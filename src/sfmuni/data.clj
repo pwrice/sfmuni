@@ -31,13 +31,29 @@
 )
 
 
-(defn get-stops []
-    (let [dom (html/html-resource (io/reader (io/resource "schedule30.xml")))]
-        (get-stop-names "Divisadero St & Chestnut St" dom)
-    )
-)
+; (defn get-stops []
+;     (let [dom (html/html-resource (io/reader (io/resource "schedule30.xml")))]
+;         (get-stop-names "Divisadero St & Chestnut St" dom)
+;     )
+; )
 
 (defn get-predictions []
   (let [dom (html/html-resource (io/reader (io/resource "multiPrediction.xml")))]
     (print dom))
+)
+
+
+(defn get-stops-for-stopname [stopName]
+  (let [dom (html/html-resource (io/reader (io/resource "allRoutes.xml")))]
+    (reduce (fn [existigStopList routeNode]
+      (concat existigStopList 
+        (map #(merge {:routeTag (:tag (:attrs routeNode))} %)
+          (filter 
+            #(= (:title (:attrs %)) "3rd St & Mission St") 
+            (html/select routeNode [[:stop (html/attr? :title)]]))))
+      )
+      '()
+      (html/select dom [:route])
+    )
+  )
 )
