@@ -34,10 +34,16 @@
    :body (json/write-str data)})
 
 
+(defn get-all-stops []
+  (let [dom (html/html-resource (io/reader (io/resource "allRoutes.xml")))]
+    ; (set (map #(assoc {} :name (:title (:attrs %)) :lat (:lat (:attrs %)) :lng (:lon (:attrs %))) (html/select dom [[:stop (html/attr? :title)]])))
+    (set (map #(assoc {} :name (:title (:attrs %))) (html/select dom [[:stop (html/attr? :title)]])))
+  )
+)
+
 (defn get-stop-list []
-   (json-response [
-      {:title "3rd St &amp; Mission St" :lat "37.7863699" :lng "-122.4021099" :stopTag "3136" :stopId "13136"}
-    ])
+;   (json-response [{:title "3rd St &amp; Mission St" :lat "37.7863699" :lng "-122.4021099" :stopTag "3136" :stopId "13136"}])
+   (json-response (get-all-stops))
 )
 
 (defn get-dummy-prediction-map []

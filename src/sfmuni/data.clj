@@ -57,3 +57,10 @@
     )
   )
 )
+
+(defn get-all-stops []
+  (let [dom (html/html-resource (io/reader (io/resource "allRoutes.xml")))]
+    ; (set (map #(assoc {} :name (:title (:attrs %)) :lat (:lat (:attrs %)) :lng (:lon (:attrs %))) (html/select dom [[:stop (html/attr? :title)]])))
+    (set (map #(assoc {} :name (:title (:attrs %))) (html/select dom [[:stop (html/attr? :title)]])))
+  )
+)
